@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import {
   MDBTypography as Type,
   MDBListGroup as ListGroup,
@@ -8,22 +8,13 @@ import {
   MDBIcon as Icon,
 } from "mdbreact";
 import dateFormat from "dateformat";
-import api from "../../utils/Endpoints";
+import PropTypes from "prop-types";
 
-export default function Today(props) {
+function Today({ incomeExpense, selectedDay }) {
   const todayHeader = dateFormat(new Date(), "dddd, d mmmm yyyy");
+  const todayDate = `${dateFormat(new Date(), "yyyy-mm")}-${selectedDay.toString().padStart(2, "0")}`;
 
-  let [incomeExpense, setIncomeExpense] = useState([]);
-  let [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    api.data
-      .incomeExpense()
-      .then(res => setIncomeExpense(res.data))
-      .finally(() => setLoading(false));
-  }, []);
-
-  return loading ? (
+  return incomeExpense.loading ? (
     <div className="spinner-grow spinner-grow-sm" />
   ) : (
     <>
@@ -32,8 +23,9 @@ export default function Today(props) {
       </Type>
       <div className="btn btn-outline-black btn-sm mb-4">Create category</div>
       <ListGroup>
-        {incomeExpense
+        {incomeExpense.data
           .filter(obj => obj.type === "Expense")
+          .filter(obj => obj.date === todayDate)
           .map(obj => (
             <ListGroupItem>
               <Row>
@@ -64,3 +56,13 @@ export default function Today(props) {
     </>
   );
 }
+
+Today.propTypes = {
+  incomeExpense: PropTypes.shape({
+    data: PropTypes.object,
+    loading: PropTypes.bool.isRequired,
+  }).isRequired,
+  selectedDay: PropTypes.number.isRequired,
+};
+
+export default Today;

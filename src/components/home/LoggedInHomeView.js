@@ -2,28 +2,39 @@ import React, { useState, useEffect } from "react";
 import { MDBRow as Row, MDBCol as Col } from "mdbreact";
 import Calendar from "./Calendar";
 import Today from "./Today";
+import MonthSummary from "./MonthSummary";
 import api from "../../utils/Endpoints";
 
 export default function LoggedInHomeView() {
-  let [calendar, setCalendar] = useState({});
-  let [loading, setLoading] = useState(true);
+  const [calendar, setCalendar] = useState({ data: {}, loading: true });
+  const [incomeExpense, setIncomeExpense] = useState({ data: [], loading: true });
+  const [selectedDay, setSelectedDay] = useState(new Date().getDate());
+
+  const handleChangeSelectedDay = (e, day) => {
+    setSelectedDay(day);
+  };
 
   useEffect(() => {
-    setLoading(true);
-    api.data
-      .calendar()
-      .then(res => setCalendar(res.data))
-      .catch(err => console.error(err.message))
-      .finally(() => setLoading(false));
+    api.data.calendar().then(res => setCalendar({ data: res.data, loading: false }));
+  }, []);
+
+  useEffect(() => {
+    api.data.incomeExpense().then(res => setIncomeExpense({ data: res.data, loading: false }));
   }, []);
 
   return (
     <Row>
-      <Col md={8}>
-        <Today />
+      <Col xl={7}>
+        <Today incomeExpense={incomeExpense} selectedDay={selectedDay} />
       </Col>
-      <Col md={4}>
-        <Calendar calendar={calendar} loading={loading} />
+      <Col xl={5}>
+        <Calendar
+          calendar={calendar}
+          handleChangeSelectedDay={handleChangeSelectedDay}
+          selectedDay={selectedDay}
+          incomeExpense={incomeExpense}
+        />
+        <MonthSummary incomeExpense={incomeExpense} calendar={calendar} />
       </Col>
     </Row>
   );
